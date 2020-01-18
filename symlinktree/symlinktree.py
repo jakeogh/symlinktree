@@ -135,7 +135,6 @@ def cli(sysskel):
         if not path_exists(dest_dir):
             print("making dest_dir:", dest_dir)
             mkdir_or_exit(dest_dir)
-            #quit(1)
 
         symlink_or_exit(infile, dest_file)
     pass
