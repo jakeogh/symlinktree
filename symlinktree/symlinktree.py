@@ -170,6 +170,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
         symlink_or_exit(infile, dest_file)
 
     if re_apply_skel:
+        eprint("\n\nre-applying skel")
         for path in ['/root', '/home/user']:
             skel = Path(sysskel) / Path('etc/skel')
             assert path_is_dir(skel)
