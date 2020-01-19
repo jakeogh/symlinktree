@@ -112,12 +112,12 @@ def cli(sysskel, count, re_apply_skel, verbose):
                 continue
 
             if is_unbroken_symlink(dest_dir):
-                eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
-                dest_dir_symlink_destination = symlink_destination(dest_dir)
-                infile_folder = '/'.join(str(infile).split('/')[0:-1])
-                ic(dest_dir_symlink_destination)
-                ic(infile_folder)
-                assert not dest_dir_symlink_destination == infile_folder
+                #eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
+                #dest_dir_symlink_destination = symlink_destination(dest_dir)
+                #infile_folder = '/'.join(str(infile).split('/')[0:-1])
+                #ic(dest_dir_symlink_destination)
+                #ic(infile_folder)
+                #assert not dest_dir_symlink_destination == infile_folder
 
                 # better:
                 assert dest_dir.resolve() == infile.parent
