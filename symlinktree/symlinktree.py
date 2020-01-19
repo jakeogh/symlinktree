@@ -136,7 +136,7 @@ def process_skel(root, skel, count, verbose=False):
     for index, infile in enumerate(files(skel)):
         if count:
             if index >= count:
-                break
+                return
         infile = infile.pathlib
 
         if infile.parent in SKIP_DIRS:
@@ -148,9 +148,9 @@ def process_skel(root, skel, count, verbose=False):
 
 
 @click.command()
-@click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
+@click.argument("sysskel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=True)
 @click.option("--count", type=int, required=False)
-@click.option("--re-apply-skel", is_flag=True)
+@click.option("--re-apply-skel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=True)
 @click.option("--verbose", is_flag=True)
 def cli(sysskel, count, re_apply_skel, verbose):
     global SKIP_DIRS
@@ -162,16 +162,14 @@ def cli(sysskel, count, re_apply_skel, verbose):
         quit(1)
 
     if re_apply_skel:
-        SKIP_DIRS = set()
         eprint("\n\nre-applying skel")
-        for path in ['/root', '/home/user']:
-            skel = Path(sysskel) / Path('etc/skel')
-            assert path_is_dir(skel)
-            process_skel(root=Path(path), skel=skel, count=count, verbose=verbose)
+        path = Path(re_apply_skel)
+        assert str(path) in ['/root', '/home/user']
+        skel = Path(sysskel) / Path('etc/skel')
+        assert path_is_dir(skel)
+        process_skel(root=Path(path), skel=skel, count=count, verbose=verbose)
     else:
         process_skel(root=Path('/'), skel=sysskel, count=count, verbose=verbose)
-
-
 
 
 if __name__ == "__main__":
