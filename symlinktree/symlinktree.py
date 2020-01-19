@@ -70,8 +70,9 @@ def move_path_to_old(path, verbose=False):
 @click.command()
 @click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
 @click.option("--count", type=int, required=False)
+@click.option("--re-apply-skel", is_flag=True)
 @click.option("--verbose", is_flag=True)
-def cli(sysskel, count, verbose):
+def cli(sysskel, count, re_apply_skel, verbose):
     sysskel_dir = sysskel
     sysskel_dir = os.path.realpath(sysskel_dir)
     assert path_is_dir(sysskel_dir)
@@ -80,10 +81,8 @@ def cli(sysskel, count, verbose):
         eprint("sysskel_dir:", sysskel_dir, "does not exist. Exiting.")
         os._exit(1)
 
-    #orig_file_list = [os.path.join(path, filename) for path, dirs, files in os.walk(sysskel_dir) for filename in files]
     file_list = files(sysskel_dir)
 
-    #skip_list = []
     skip_dirs = set()
     for index, infile in enumerate(file_list):
         if count:
@@ -103,10 +102,6 @@ def cli(sysskel, count, verbose):
 
         possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
 
-        #if infile.name == '.symlink_dir':  # should only happen if it happend to be the first dir entry, redundant
-        #    skip_dirs.add(infile.parent)
-        #    eprint("found .symlink_dir dotfile:", infile)
-        #    continue
         if possible_symlink_dir.exists():
             eprint("found .symlink_dir dotfile:", possible_symlink_dir)
             skip_dirs.add(infile.parent)
@@ -117,6 +112,14 @@ def cli(sysskel, count, verbose):
                 continue
 
             if is_unbroken_symlink(dest_dir):
+                eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
+                dest_dir_symlink_destination = symlink_destination(dest_dir)
+                infile_folder = '/'.join(str(infile).split('/')[0:-1])
+                ic(dest_dir_symlink_destination)
+                ic(infile_folder)
+                assert not dest_dir_symlink_destination == infile_folder
+
+                # better:
                 assert dest_dir.resolve() == infile.parent
                 continue
 
@@ -130,16 +133,6 @@ def cli(sysskel, count, verbose):
                 symlink_or_exit(infile.parent, dest_dir, verbose=verbose)
                 continue
 
-
-
-        #for item in skip_list:
-        #    if str(infile.pathlib).startswith(item):
-        #        print("skip_list skipping:", infile)
-        #        skip_current = True
-        #        break
-        #if skip_current:
-        #    continue
-
         #if path_is_dir(infile):  # never happens
         #    #print("found directory:", infile)
         #    #print("checking if it contains .symlink_dir")
@@ -151,16 +144,6 @@ def cli(sysskel, count, verbose):
         #        print("skipping directory:", infile)
         #        continue
 
-        if is_unbroken_symlink(dest_dir):
-            eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
-            dest_dir_symlink_destination = symlink_destination(dest_dir)
-            infile_folder = '/'.join(str(infile).split('/')[0:-1])
-            ic(dest_dir_symlink_destination)
-            ic(infile_folder)
-            #try:  #bug papered over, remove the try
-            assert not dest_dir_symlink_destination == infile_folder
-            #except AssertionError:
-            #    continue
 
         dest_file = '/' + '/'.join(str(infile).split('/')[4:])
         ic(dest_file)
@@ -186,11 +169,16 @@ def cli(sysskel, count, verbose):
 
         symlink_or_exit(infile, dest_file)
 
+    if re_apply_skel:
+        for path in ['/root', '/home/user']:
+            skel = Path(sysskel) / Path('etc/skel')
+            assert path_is_dir(skel)
+            for infile in files(skel):
+                ic(infile)
+                dest_file = infile.relative_to(skel)
+                ic(dest_file)
+                pass
+
 
 if __name__ == "__main__":
     cli()
-
-
-# import IPython; IPython.embed()
-# import pdb; pdb.set_trace()
-# from pudb import set_trace; set_trace(paused=False)#!/usr/bin/env python3
