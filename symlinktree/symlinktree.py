@@ -66,7 +66,7 @@ def move_path_to_old(path, verbose=False):
     shutil.move(path, dest)
 
 
-def process_infile(infile, verbose=False):
+def process_infile(root, sysskel, infile, verbose=False):
     global SKIP_DIRS
 
     eprint("\ninfile:", infile)
@@ -121,6 +121,8 @@ def process_infile(infile, verbose=False):
 
     dest_file = '/' + '/'.join(str(infile).split('/')[4:])
     ic(dest_file)
+    new_dest_file = root / infile.relative_to(sysskel)
+    ic(new_dest_file)
     if is_broken_symlink(dest_file):
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file)
@@ -156,6 +158,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
     sysskel_dir = sysskel
     sysskel_dir = os.path.realpath(sysskel_dir)
     assert path_is_dir(sysskel_dir)
+    sysskel_dir = Path(sysskel_dir)
 
     if not os.path.exists(sysskel_dir):
         eprint("sysskel_dir:", sysskel_dir, "does not exist. Exiting.")
@@ -174,7 +177,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
                 eprint("skipping, parent in SKIP_DIRS:", infile)
             continue
 
-        process_infile(infile, verbose=verbose)
+        process_infile(root=Path('/'), sysskel=sysskel_dir, infile=infile, verbose=verbose)
 
     if re_apply_skel:
         eprint("\n\nre-applying skel")
