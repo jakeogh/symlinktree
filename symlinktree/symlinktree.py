@@ -58,9 +58,13 @@ def mkdir_or_exit(folder):
         os._exit(1)
 
 
-def move_path_to_old(path):
+def move_path_to_old(path, verbose):
+    path = Path(path)
     timestamp = str(time.time())
-    shutil.move(path, path + '.old.' + timestamp)
+    dest = path.with_suffix('.old.' + timestamp)
+    if verbose:
+        eprint("{} -> {}".format(path, dest))
+    shutil.move(path, dest)
 
 
 @click.command()
