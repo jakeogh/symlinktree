@@ -167,7 +167,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
         for path in ['/root', '/home/user']:
             skel = Path(sysskel) / Path('etc/skel')
             assert path_is_dir(skel)
-            process_skel(root=path, skel=skel, count=count, verbose=verbose)
+            process_skel(root=Path(path), skel=skel, count=count, verbose=verbose)
     else:
         process_skel(root=Path('/'), skel=sysskel, count=count, verbose=verbose)
 
