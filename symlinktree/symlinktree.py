@@ -175,6 +175,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
             skel = Path(sysskel) / Path('etc/skel')
             assert path_is_dir(skel)
             for infile in files(skel):
+                infile = infile.pathlib
                 ic(infile)
                 dest_file = infile.relative_to(skel)
                 ic(dest_file)
