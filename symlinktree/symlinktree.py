@@ -58,10 +58,16 @@ def mkdir_or_exit(folder):
         os._exit(1)
 
 
+def move_path_to_old(path):
+    timestamp = str(time.time())
+    shutil.move(path, path + '.old.' + timestamp)
+
+
 @click.command()
 @click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
 @click.option("--count", type=int, required=False)
-def cli(sysskel, count):
+@click.option("--verbose", is_flag=True)
+def cli(sysskel, count, verbose):
     sysskel_dir = sysskel
     sysskel_dir = os.path.realpath(sysskel_dir)
     assert path_is_dir(sysskel_dir)
@@ -80,18 +86,37 @@ def cli(sysskel, count):
             if index >= count:
                 quit(0)
         infile = infile.pathlib
-        eprint("\ninfile:", infile)
-        timestamp = str(time.time())
 
         if infile.parent in skip_dirs:
+            if verbose:
+                eprint("skipping, parent in skip_dirs:", infile)
             continue
 
-        #skip_current = False
+        eprint("\ninfile:", infile)
 
-        if infile.name == '.symlink_dir':
+        dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
+        ic(dest_dir)
+
+        possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
+
+        #if infile.name == '.symlink_dir':  # should only happen if it happend to be the first dir entry, redundant
+        #    skip_dirs.add(infile.parent)
+        #    eprint("found .symlink_dir dotfile:", infile)
+        #    continue
+        if possible_symlink_dir.exists():
+            eprint("found .symlink_dir dotfile:", possible_symlink_dir)
             skip_dirs.add(infile.parent)
-            print("found .symlink_dir dotfile:", infile)
-            continue
+            assert not dest_dir.is_file()
+            if is_unbroken_symlink(dest_dir):
+                assert dest_dir.resolve() == infile.parent
+                continue
+
+            if is_broken_symlink(dest_dir) or path_is_dir(dest_dir):
+                move_path_to_old(dest_dir, verbose=verbose)  # might want to just rm broken symlinks
+                symlink_or_exit(infile.parent, dest_dir, verbose=verbose)
+                continue
+
+
 
         #for item in skip_list:
         #    if str(infile.pathlib).startswith(item):
@@ -112,8 +137,6 @@ def cli(sysskel, count):
         #        print("skipping directory:", infile)
         #        continue
 
-        dest_dir = '/' + '/'.join(str(infile).split('/')[4:-1])
-        ic(dest_dir)
         if is_unbroken_symlink(dest_dir):
             eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
             dest_dir_symlink_destination = symlink_destination(dest_dir)
@@ -128,24 +151,23 @@ def cli(sysskel, count):
         dest_file = '/' + '/'.join(str(infile).split('/')[4:])
         ic(dest_file)
         if is_broken_symlink(dest_file):
-            print("found broken symlink at dest_file:", dest_file, "moving it to .old")
-            shutil.move(dest_file, dest_file + '.old.' + timestamp)
+            eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
+            move_path_to_old(dest_file)
         elif is_unbroken_symlink(dest_file):
-            print("skipping pre-existing dest file")
+            eprint("skipping pre-existing correctly linked dest file")
             continue
 
         if not os.path.islink(dest_file):
-            print("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
+            eprint("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
             try:
-                shutil.move(dest_file, dest_file + '.old.' + timestamp)
-                #quit(1)
+                move_path_to_old(dest_file)
             except Exception as e:
                 eprint(e)
                 eprint("Problem moving existing file to backup file, exiting")
                 os._exit(1)
 
         if not path_exists(dest_dir):
-            print("making dest_dir:", dest_dir)
+            eprint("making dest_dir:", dest_dir)
             mkdir_or_exit(dest_dir)
 
         symlink_or_exit(infile, dest_file)
