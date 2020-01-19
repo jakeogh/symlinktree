@@ -70,7 +70,8 @@ def process_infile(root, sysskel, infile, verbose=False):
     global SKIP_DIRS
 
     eprint("\ninfile:", infile)
-    ic(root)
+    if verbose:
+        ic(root)
 
     #dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
     #ic(dest_dir)
