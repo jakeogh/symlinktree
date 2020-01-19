@@ -144,7 +144,7 @@ def process_skel(root, skel, count, verbose=False):
                 eprint("skipping, parent in SKIP_DIRS:", infile)
             continue
 
-        process_infile(root=Path('/'), skel=skel, infile=infile, verbose=verbose)
+        process_infile(root=root, skel=skel, infile=infile, verbose=verbose)
 
 
 @click.command()
