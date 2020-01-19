@@ -73,6 +73,8 @@ def process_infile(root, sysskel, infile, verbose=False):
 
     dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
     ic(dest_dir)
+    new_dest_dir = Path(root / infile.relative_to(sysskel)).parent
+    ic(new_dest_dir)
 
     possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
 
@@ -119,10 +121,10 @@ def process_infile(root, sysskel, infile, verbose=False):
     #        continue
 
 
-    dest_file = '/' + '/'.join(str(infile).split('/')[4:])
+    #dest_file = '/' + '/'.join(str(infile).split('/')[4:])
+    #ic(dest_file)
+    dest_file = root / infile.relative_to(sysskel)
     ic(dest_file)
-    new_dest_file = root / infile.relative_to(sysskel)
-    ic(new_dest_file)
     if is_broken_symlink(dest_file):
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file)
