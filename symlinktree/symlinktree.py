@@ -37,16 +37,6 @@ ic.lineWrapWidth, _ = get_terminal_size((80, 20))
 global SKIP_DIRS
 SKIP_DIRS = set()
 
-def path_exists(path): #gak, misses symlinks
-    ic(path)
-    if isinstance(path, str): #filter out bool or int to not bit by os.stat(False) or os.stat(0)
-        if os.path.lexists(path):
-            return True
-        else:
-            return False
-    else:
-        raise TypeError('path_exists() rquires a str')
-
 
 def mkdir_or_exit(folder):
     try:
@@ -120,7 +110,7 @@ def process_infile(root, skel, infile, verbose=False):
             eprint("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
             move_path_to_old(dest_file, verbose=verbose)
 
-    if not path_exists(dest_dir):
+    if not dest_dir.exists():
         eprint("making dest_dir:", dest_dir)
         mkdir_or_exit(dest_dir)
 
