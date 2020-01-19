@@ -149,7 +149,7 @@ def process_skel(root, skel, count, verbose=False):
 @click.command()
 @click.argument("sysskel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=True)
 @click.option("--count", type=int, required=False)
-@click.option("--re-apply-skel", required=False, type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=True)
+@click.option("--re-apply-skel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=False)
 @click.option("--verbose", is_flag=True)
 def cli(sysskel, count, re_apply_skel, verbose):
     global SKIP_DIRS
