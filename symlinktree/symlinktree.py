@@ -71,10 +71,10 @@ def process_infile(root, sysskel, infile, verbose=False):
 
     eprint("\ninfile:", infile)
 
-    dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
+    #dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
+    #ic(dest_dir)
+    dest_dir = Path(root / infile.relative_to(sysskel)).parent
     ic(dest_dir)
-    new_dest_dir = Path(root / infile.relative_to(sysskel)).parent
-    ic(new_dest_dir)
 
     possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
 
@@ -182,17 +182,28 @@ def cli(sysskel, count, re_apply_skel, verbose):
         process_infile(root=Path('/'), sysskel=sysskel_dir, infile=infile, verbose=verbose)
 
     if re_apply_skel:
+        SKIP_DIRS = set()
         eprint("\n\nre-applying skel")
         for path in ['/root', '/home/user']:
             skel = Path(sysskel) / Path('etc/skel')
             assert path_is_dir(skel)
-            for infile in files(skel):
+            for index, infile in enumerate(files(skel)):
+                if count:
+                    if index >= count:
+                        quit(0)
                 infile = infile.pathlib
-                eprint('')
-                ic(infile)
-                dest_file = infile.relative_to(skel)
-                ic(dest_file)
-                pass
+                if infile.parent in SKIP_DIRS:
+                    if verbose:
+                        eprint("skipping, parent in SKIP_DIRS:", infile)
+                    continue
+
+                process_infile(root=Path(path), sysskel=skel, infile=infile, verbose=verbose)
+
+                #eprint('')
+                #ic(infile)
+                #dest_file = infile.relative_to(skel)
+                #ic(dest_file)
+                #pass
 
 
 if __name__ == "__main__":
