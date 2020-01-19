@@ -66,7 +66,7 @@ def move_path_to_old(path, verbose=False):
     shutil.move(path, dest)
 
 
-def process_infile(root, sysskel, infile, verbose=False):
+def process_infile(root, skel, infile, verbose=False):
     global SKIP_DIRS
 
     eprint("\ninfile:", infile)
@@ -75,7 +75,7 @@ def process_infile(root, sysskel, infile, verbose=False):
 
     #dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
     #ic(dest_dir)
-    dest_dir = Path(root / infile.relative_to(sysskel)).parent
+    dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
 
     possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
@@ -90,14 +90,6 @@ def process_infile(root, sysskel, infile, verbose=False):
             return
 
         if is_unbroken_symlink(dest_dir):
-            #eprint("dest_dir is a unbroken symlink, checking if it points to the infiles own dir")
-            #dest_dir_symlink_destination = symlink_destination(dest_dir)
-            #infile_folder = '/'.join(str(infile).split('/')[0:-1])
-            #ic(dest_dir_symlink_destination)
-            #ic(infile_folder)
-            #assert not dest_dir_symlink_destination == infile_folder
-
-            # better:
             assert dest_dir.resolve() == infile.parent
             return
 
@@ -111,21 +103,7 @@ def process_infile(root, sysskel, infile, verbose=False):
             symlink_or_exit(infile.parent, dest_dir, verbose=verbose)
             return
 
-    #if path_is_dir(infile):  # never happens
-    #    #print("found directory:", infile)
-    #    #print("checking if it contains .symlink_dir")
-    #    if file_exists(infile + '/.symlink_dir'):
-    #        print(".symlink_dir found")
-    #        print("adding", infile, "to skip_list")
-    #        skip_list.append(infile + '/')
-    #    else:
-    #        print("skipping directory:", infile)
-    #        continue
-
-
-    #dest_file = '/' + '/'.join(str(infile).split('/')[4:])
-    #ic(dest_file)
-    dest_file = root / infile.relative_to(sysskel)
+    dest_file = root / infile.relative_to(skel)
     ic(dest_file)
     if is_broken_symlink(dest_file):
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
@@ -150,27 +128,12 @@ def process_infile(root, sysskel, infile, verbose=False):
     symlink_or_exit(infile, dest_file)
 
 
+def process_skel(root, skel, count, verbose=False):
+    if verbose:
+        ic(root)
+        ic(skel)
 
-@click.command()
-@click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
-@click.option("--count", type=int, required=False)
-@click.option("--re-apply-skel", is_flag=True)
-@click.option("--verbose", is_flag=True)
-def cli(sysskel, count, re_apply_skel, verbose):
-    global SKIP_DIRS
-
-    sysskel_dir = sysskel
-    sysskel_dir = os.path.realpath(sysskel_dir)
-    assert path_is_dir(sysskel_dir)
-    sysskel_dir = Path(sysskel_dir)
-
-    if not os.path.exists(sysskel_dir):
-        eprint("sysskel_dir:", sysskel_dir, "does not exist. Exiting.")
-        quit(1)
-
-    file_list = files(sysskel_dir)
-
-    for index, infile in enumerate(file_list):
+    for index, infile in enumerate(files(skel)):
         if count:
             if index >= count:
                 break
@@ -181,7 +144,22 @@ def cli(sysskel, count, re_apply_skel, verbose):
                 eprint("skipping, parent in SKIP_DIRS:", infile)
             continue
 
-        process_infile(root=Path('/'), sysskel=sysskel_dir, infile=infile, verbose=verbose)
+        process_infile(root=Path('/'), skel=skel, infile=infile, verbose=verbose)
+
+
+@click.command()
+@click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
+@click.option("--count", type=int, required=False)
+@click.option("--re-apply-skel", is_flag=True)
+@click.option("--verbose", is_flag=True)
+def cli(sysskel, count, re_apply_skel, verbose):
+    global SKIP_DIRS
+
+    sysskel = Path(sysskel).resolve()
+    assert path_is_dir(sysskel)
+    if not os.path.exists(sysskel):
+        eprint("sysskel_dir:", sysskel, "does not exist. Exiting.")
+        quit(1)
 
     if re_apply_skel:
         SKIP_DIRS = set()
@@ -189,23 +167,11 @@ def cli(sysskel, count, re_apply_skel, verbose):
         for path in ['/root', '/home/user']:
             skel = Path(sysskel) / Path('etc/skel')
             assert path_is_dir(skel)
-            for index, infile in enumerate(files(skel)):
-                if count:
-                    if index >= count:
-                        break
-                infile = infile.pathlib
-                if infile.parent in SKIP_DIRS:
-                    if verbose:
-                        eprint("skipping, parent in SKIP_DIRS:", infile)
-                    continue
+            process_skel(root=path, skel=skel, count=count, verbose=verbose)
+    else:
+        process_skel(root=Path('/'), skel=sysskel, count=count, verbose=verbose)
 
-                process_infile(root=Path(path), sysskel=skel, infile=infile, verbose=verbose)
 
-                #eprint('')
-                #ic(infile)
-                #dest_file = infile.relative_to(skel)
-                #ic(dest_file)
-                #pass
 
 
 if __name__ == "__main__":
