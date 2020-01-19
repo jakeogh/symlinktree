@@ -171,7 +171,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
     for index, infile in enumerate(file_list):
         if count:
             if index >= count:
-                quit(0)
+                break
         infile = infile.pathlib
 
         if infile.parent in SKIP_DIRS:
@@ -190,7 +190,7 @@ def cli(sysskel, count, re_apply_skel, verbose):
             for index, infile in enumerate(files(skel)):
                 if count:
                     if index >= count:
-                        quit(0)
+                        break
                 infile = infile.pathlib
                 if infile.parent in SKIP_DIRS:
                     if verbose:
