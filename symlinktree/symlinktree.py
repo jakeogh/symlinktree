@@ -61,7 +61,7 @@ def mkdir_or_exit(folder):
 def move_path_to_old(path, verbose=False):
     path = Path(path)
     timestamp = str(time.time())
-    dest = path.with_suffix('.old.' + timestamp)
+    dest = path.with_name(path.name + '.old.' + timestamp)
     if verbose:
         eprint("{} -> {}".format(path, dest))
     shutil.move(path, dest)
@@ -111,11 +111,21 @@ def cli(sysskel, count, verbose):
             eprint("found .symlink_dir dotfile:", possible_symlink_dir)
             skip_dirs.add(infile.parent)
             assert not dest_dir.is_file()
+
+            if not dest_dir.exists():
+                symlink_or_exit(infile.parent, dest_dir, verbose=verbose)
+                continue
+
             if is_unbroken_symlink(dest_dir):
                 assert dest_dir.resolve() == infile.parent
                 continue
 
-            if is_broken_symlink(dest_dir) or path_is_dir(dest_dir):
+            if is_broken_symlink(dest_dir):
+                if verbose:
+                    eprint("found broken symlink:", dest_dir)
+                    quit(1)  # todo
+
+            elif path_is_dir(dest_dir):
                 move_path_to_old(dest_dir, verbose=verbose)  # might want to just rm broken symlinks
                 symlink_or_exit(infile.parent, dest_dir, verbose=verbose)
                 continue
