@@ -58,7 +58,7 @@ def mkdir_or_exit(folder):
         os._exit(1)
 
 
-def move_path_to_old(path, verbose):
+def move_path_to_old(path, verbose=False):
     path = Path(path)
     timestamp = str(time.time())
     dest = path.with_suffix('.old.' + timestamp)
