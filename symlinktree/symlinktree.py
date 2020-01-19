@@ -57,7 +57,7 @@ def mkdir_or_exit(folder):
         os._exit(1)
 
 
-def move_path_to_old(path, verbose=False):
+def move_path_to_old(path, verbose):
     path = Path(path)
     timestamp = str(time.time())
     dest = path.with_name(path.name + '.old.' + timestamp)
@@ -107,19 +107,18 @@ def process_infile(root, skel, infile, verbose=False):
     ic(dest_file)
     if is_broken_symlink(dest_file):
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
-        move_path_to_old(dest_file)
+        move_path_to_old(dest_file, verbose=verbose)
     elif is_unbroken_symlink(dest_file):
-        eprint("skipping pre-existing correctly linked dest file")
-        return
+        if dest_file.resolve() == infile:
+            eprint("skipping pre-existing correctly linked dest file")
+            return
+        else:
+            move_path_to_old(dest_file, verbose=verbose)
 
     if not os.path.islink(dest_file):
-        eprint("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
-        try:
-            move_path_to_old(dest_file)
-        except Exception as e:
-            eprint(e)
-            eprint("Problem moving existing file to backup file, exiting")
-            quit(1)
+        if dest_file.exists():
+            eprint("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
+            move_path_to_old(dest_file, verbose=verbose)
 
     if not path_exists(dest_dir):
         eprint("making dest_dir:", dest_dir)
