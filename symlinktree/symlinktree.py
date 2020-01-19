@@ -60,7 +60,8 @@ def mkdir_or_exit(folder):
 
 @click.command()
 @click.argument("sysskel", type=click.Path(exists=False, dir_okay=True, path_type=str, allow_dash=False), nargs=1, required=True)
-def cli(sysskel):
+@click.option("--count", type=int, required=False)
+def cli(sysskel, count):
     sysskel_dir = sysskel
     sysskel_dir = os.path.realpath(sysskel_dir)
     assert path_is_dir(sysskel_dir)
@@ -72,9 +73,12 @@ def cli(sysskel):
     #orig_file_list = [os.path.join(path, filename) for path, dirs, files in os.walk(sysskel_dir) for filename in files]
     file_list = files(sysskel_dir)
 
-    skip_list = []
+    #skip_list = []
     skip_dirs = set()
-    for infile in file_list:
+    for index, infile in enumerate(file_list):
+        if count:
+            if index >= count:
+                quit(0)
         infile = infile.pathlib
         eprint("\ninfile:", infile)
         timestamp = str(time.time())
