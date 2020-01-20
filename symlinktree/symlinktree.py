@@ -93,6 +93,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
             return
 
         if is_broken_symlink(dest_dir):
+            if is_broken_symlink(infile):
+                eprint("infile: {} is a broken symlink, skipping".format(infile))
+                return
             if verbose:
                 eprint("found broken symlink:", dest_dir)
                 quit(1)  # todo
