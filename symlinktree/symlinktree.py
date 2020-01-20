@@ -110,7 +110,7 @@ def process_infile(root, skel, infile, confirm, verbose=False):
             eprint("skipping pre-existing correctly linked dest file")
             return
         else:
-            move_path_to_old(dest_file, verbose=verbose)
+            move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
 
     if not os.path.islink(dest_file):
         if dest_file.exists():
