@@ -65,10 +65,12 @@ def move_path_to_old(path, confirm, verbose):
 
 def process_infile(root, skel, infile, confirm, verbose=False):
     global SKIP_DIRS
+    eprint("")
+    ic(infile)
 
-    eprint("\ninfile:", infile)
     if verbose:
         ic(root)
+        ic(skel)
 
     #dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
     #ic(dest_dir)
