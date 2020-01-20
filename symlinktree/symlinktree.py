@@ -106,13 +106,14 @@ def process_infile(root, skel, infile, confirm, verbose=False):
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
     elif is_unbroken_symlink(dest_file):
-        if dest_file.resolve() == infile:
+        if dest_file.resolve() == infile.resolve():  # must resolve() infile cuz it could also be a symlink
             eprint("skipping pre-existing correctly linked dest file")
             return
         else:
-            eprint("moving incorrectly linked symlink")
-            ic(dest_file.resolve())
-            ic(infile)
+            if verbose:
+                eprint("moving incorrectly linked symlink")
+                ic(dest_file.resolve())
+                ic(infile)
             move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
 
     if not os.path.islink(dest_file):
