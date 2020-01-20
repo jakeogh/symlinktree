@@ -71,6 +71,10 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     if infile == skel:
         return
 
+    if root == Path('/root'):
+        if infile.name == '.ssh':
+            return
+
     if verbose:
         ic(root)
         ic(skel)
