@@ -108,6 +108,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     dest_file = root / infile.relative_to(skel)
     ic(dest_file)
     if is_broken_symlink(dest_file):
+        if is_broken_symlink(infile):
+            eprint("infile: {} is a broken symlink, skipping".format(infile))
+            return
         eprint("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
     elif is_unbroken_symlink(dest_file):
