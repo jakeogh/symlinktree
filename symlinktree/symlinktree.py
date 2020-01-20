@@ -68,6 +68,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     eprint("")
     ic(infile)
 
+    if infile == skel:
+        return
+
     if verbose:
         ic(root)
         ic(skel)
