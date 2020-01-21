@@ -14,25 +14,21 @@
 # pylint: disable=R0903     # too few public methods
 # pylint: disable=E1101     # no member for base
 # pylint: disable=W0201     # attribute defined outside __init__
-## pylint: disable=W0703     # catching too general exception
 
 import os
-from pathlib import Path
 import time
-import shutil
+from pathlib import Path
+from shutil import get_terminal_size
+from shutil import move
 import click
 from kcl.printops import eprint
 from kcl.symlinkops import is_broken_symlink
 from kcl.symlinkops import is_unbroken_symlink
-#from kcl.symlinkops import symlink_destination
-from getdents import files
-from getdents import paths
-#from kcl.fileops import file_exists
-from kcl.dirops import path_is_dir
 from kcl.symlinkops import symlink_or_exit
+from kcl.dirops import path_is_dir
+from getdents import paths
 from icecream import ic
 ic.configureOutput(includeContext=True)
-from shutil import get_terminal_size
 ic.lineWrapWidth, _ = get_terminal_size((80, 20))
 
 global SKIP_DIRS
@@ -59,8 +55,8 @@ def move_path_to_old(path, confirm, verbose):
     if verbose:
         eprint("{} -> {}".format(path, dest))
     if confirm:
-        input("press enter to shutil.move({}, {})".format(path, dest))
-    shutil.move(path, dest)
+        input("press enter to move({}, {})".format(path, dest))
+    move(path, dest)
 
 
 def process_infile(root, skel, infile, confirm, verbose=False):
@@ -79,8 +75,6 @@ def process_infile(root, skel, infile, confirm, verbose=False):
         ic(root)
         ic(skel)
 
-    #dest_dir = Path('/' + '/'.join(str(infile).split('/')[4:-1]))
-    #ic(dest_dir)
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
 
@@ -148,7 +142,6 @@ def process_skel(root, skel, count, confirm, verbose=False):
         ic(root)
         ic(skel)
 
-    #for index, infile in enumerate(files(skel)):
     for index, infile in enumerate(paths(skel, return_dirs=True, return_files=True, return_symlinks=True)):
         if count:
             if index >= count:
