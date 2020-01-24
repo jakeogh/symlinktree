@@ -138,6 +138,15 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     symlink_or_exit(infile, dest_file, confirm=confirm, verbose=verbose)
 
 
+def skip_path(infile, verbose):
+    for parent in infile.parents:
+        if parent in SKIP_DIRS:
+            if verbose:
+                eprint("skipping: {} parent {} in SKIP_DIRS:".format(infile, parent))
+            return True
+    return False
+
+
 def process_skel(root, skel, count, confirm, verbose=False):
     if verbose:
         ic(root)
@@ -148,14 +157,8 @@ def process_skel(root, skel, count, confirm, verbose=False):
             if index >= count:
                 return
         infile = infile.pathlib
-
-        for parent in infile.parents:
-            if parent in SKIP_DIRS:
-                if verbose:
-                    eprint("skipping: {} parent {} in SKIP_DIRS:".format(infile, parent))
-                continue
-
-        process_infile(root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose)
+        if not skip_path(infile, verbose=verbose):
+            process_infile(root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose)
 
 
 @click.command()
