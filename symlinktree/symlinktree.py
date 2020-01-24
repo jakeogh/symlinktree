@@ -107,6 +107,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
             symlink_or_exit(infile.parent, dest_dir, confirm=confirm, verbose=verbose)
             return
 
+    if infile.is_dir():
+        return
+
     dest_file = root / infile.relative_to(skel)
     ic(dest_file)
     if is_broken_symlink(dest_file):
