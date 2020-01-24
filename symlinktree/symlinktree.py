@@ -83,6 +83,7 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     if possible_symlink_dir.exists():
         eprint("found .symlink_dir dotfile:", possible_symlink_dir)
         SKIP_DIRS.add(infile.parent)
+        ic(SKIP_DIRS)
         assert not dest_dir.is_file()
 
         if not dest_dir.exists():
