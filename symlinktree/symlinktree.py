@@ -149,17 +149,11 @@ def process_skel(root, skel, count, confirm, verbose=False):
                 return
         infile = infile.pathlib
 
-        for path in SKIP_DIRS:
-            for parent in infile.parents:
-                if parent == path:
-                    if verbose:
-                        eprint("skipping: {} parent {} in SKIP_DIRS:".format(infile, parent))
-                    continue
-
-        #if infile.parent in SKIP_DIRS:
-        #    if verbose:
-        #        eprint("skipping, parent in SKIP_DIRS:", infile)
-        #    continue
+        for parent in infile.parents:
+            if parent in SKIP_DIRS:
+                if verbose:
+                    eprint("skipping: {} parent {} in SKIP_DIRS:".format(infile, parent))
+                continue
 
         process_infile(root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose)
 
