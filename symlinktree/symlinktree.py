@@ -108,7 +108,10 @@ def process_infile(root, skel, infile, confirm, verbose=False):
             symlink_or_exit(infile.parent, dest_dir, confirm=confirm, verbose=verbose)
             return
 
-    if infile.is_dir():
+    if is_broken_symlink(infile):   # dont process broken symlinks
+        return
+
+    if infile.is_dir():             # dont make symlinks to dirs unless .symlink_dir exists
         return
 
     dest_file = root / infile.relative_to(skel)
