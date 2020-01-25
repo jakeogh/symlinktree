@@ -51,7 +51,7 @@ def mkdir_or_exit(folder, confirm, verbose):
 def move_path_to_old(path, confirm, verbose):
     path = Path(path)
     timestamp = str(time.time())
-    dest = path.with_name(path.name + '.old.' + timestamp)
+    dest = path.with_name(path.name + '._symlinktree_old.' + timestamp)
     if verbose:
         eprint("{} -> {}".format(path, dest))
     if confirm:
@@ -60,6 +60,7 @@ def move_path_to_old(path, confirm, verbose):
 
 
 def process_infile(root, skel, infile, confirm, verbose=False):
+    assert '._symlinktree_old.' not in infile.as_posix()
     global SKIP_DIRS
     eprint("")
     ic(infile)
