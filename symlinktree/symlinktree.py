@@ -111,8 +111,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     if is_broken_symlink(infile):   # dont process broken symlinks
         return
 
-    if infile.is_dir():             # dont make symlinks to dirs unless .symlink_dir exists
-        return
+    if not infile.is_symlink():         # is_dir() returns true for symlinks to dirs
+        if infile.is_dir():             # dont make symlinks to dirs unless .symlink_dir exists
+            return
 
     dest_file = root / infile.relative_to(skel)
     ic(dest_file)
