@@ -127,12 +127,11 @@ def process_infile(root, skel, infile, confirm, verbose=False):
         if dest_file.resolve() == infile.resolve():  # must resolve() infile cuz it could also be a symlink
             eprint("skipping pre-existing correctly linked dest file")
             return
-        else:
-            if verbose:
-                eprint("moving incorrectly linked symlink")
-                ic(dest_file.resolve())
-                ic(infile)
-            move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+        if verbose:
+            eprint("moving incorrectly linked symlink")
+            ic(dest_file.resolve())
+            ic(infile)
+        move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
 
     if not os.path.islink(dest_file):
         if dest_file.exists():
