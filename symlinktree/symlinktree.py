@@ -101,7 +101,7 @@ def process_infile(root, skel, infile, confirm, verbose=False):
                 return
             if verbose:
                 eprint("found broken symlink:", dest_dir)
-                quit(1)  # todo
+                sys.exit(1)  # todo
 
         elif path_is_dir(dest_dir):
             move_path_to_old(dest_dir, confirm=confirm, verbose=verbose)  # might want to just rm broken symlinks
