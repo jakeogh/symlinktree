@@ -16,6 +16,7 @@
 # pylint: disable=W0201     # attribute defined outside __init__
 
 import os
+import sys
 import time
 from pathlib import Path
 from shutil import get_terminal_size
@@ -45,7 +46,7 @@ def mkdir_or_exit(folder, confirm, verbose):
     except Exception as e:
         eprint("Exception: %s", e)
         eprint("Unable to os.mkdir(%s). Exiting.", folder)
-        quit(1)
+        sys.exit(1)
 
 
 def move_path_to_old(path, confirm, verbose):
@@ -181,7 +182,7 @@ def cli(sysskel, count, re_apply_skel, verbose, confirm):
     assert path_is_dir(sysskel)
     if not os.path.exists(sysskel):
         eprint("sysskel_dir:", sysskel, "does not exist. Exiting.")
-        quit(1)
+        sys.exit(1)
 
     if re_apply_skel:
         eprint("\n\nre-applying skel")
