@@ -19,15 +19,9 @@ import os
 import sys
 import time
 from pathlib import Path
-#from shutil import get_terminal_size
 from shutil import move
 
 import click
-#from kcl.printops import eprint
-#from kcl.symlinkops import is_broken_symlink
-#from kcl.symlinkops import is_unbroken_symlink
-#from kcl.symlinkops import symlink_or_exit
-#from kcl.dirops import path_is_dir
 from getdents import paths
 from icecream import ic
 
