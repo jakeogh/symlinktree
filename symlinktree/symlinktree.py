@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
+# -*- coding: utf8 -*-
 
-# pylint: disable=C0111     # docstrings are always outdated and wrong
-# pylint: disable=W0511     # todo is encouraged
-# pylint: disable=R0902     # too many instance attributes
-# pylint: disable=C0302     # too many lines in module
-# pylint: disable=C0103     # single letter var names
-# pylint: disable=R0911     # too many return statements
-# pylint: disable=R0912     # too many branches
-# pylint: disable=R0915     # too many statements
-# pylint: disable=R0913     # too many arguments
-# pylint: disable=R1702     # too many nested blocks
-# pylint: disable=R0914     # too many local variables
-# pylint: disable=R0903     # too few public methods
-# pylint: disable=E1101     # no member for base
-# pylint: disable=W0201     # attribute defined outside __init__
+# flake8: noqa           # flake8 has no per file settings :(
+# pylint: disable=C0111  # docstrings are always outdated and wrong
+# pylint: disable=C0114  #      Missing module docstring (missing-module-docstring)
+# pylint: disable=W0511  # todo is encouraged
+# pylint: disable=C0301  # line too long
+# pylint: disable=R0902  # too many instance attributes
+# pylint: disable=C0302  # too many lines in module
+# pylint: disable=C0103  # single letter var names, func name too descriptive
+# pylint: disable=R0911  # too many return statements
+# pylint: disable=R0912  # too many branches
+# pylint: disable=R0915  # too many statements
+# pylint: disable=R0913  # too many arguments
+# pylint: disable=R1702  # too many nested blocks
+# pylint: disable=R0914  # too many local variables
+# pylint: disable=R0903  # too few public methods
+# pylint: disable=E1101  # no member for base
+# pylint: disable=W0201  # attribute defined outside __init__
+# pylint: disable=R0916  # Too many boolean expressions in if statement
+# pylint: disable=C0305  # Trailing newlines editor should fix automatically, pointless warning
+
 
 import os
 import sys
@@ -22,19 +29,31 @@ from pathlib import Path
 from shutil import move
 
 import click
+from dirtool import path_is_dir
 from getdents import paths
-from icecream import ic
 
 global SKIP_DIRS
 SKIP_DIRS = set()
 
 
-def path_is_dir(path):
-    if os.path.isdir(path):  # could still be a symlink
-        if os.path.islink(path):
-            return False
-        return True
-    return False
+def eprint(*args, **kwargs):
+    if 'file' in kwargs.keys():
+        kwargs.pop('file')
+    print(*args, file=sys.stderr, **kwargs)
+
+
+try:
+    from icecream import ic  # https://github.com/gruns/icecream
+except ImportError:
+    ic = eprint
+
+
+#def path_is_dir(path):
+#    if os.path.isdir(path):  # could still be a symlink
+#        if os.path.islink(path):
+#            return False
+#        return True
+#    return False
 
 
 def is_broken_symlink(path):
@@ -49,7 +68,11 @@ def is_unbroken_symlink(path):
     return False  # path isnt a symlink
 
 
-def symlink_or_exit(target, link_name, confirm=False, verbose=False):
+def symlink_or_exit(target,
+                    link_name,
+                    confirm: bool = False,
+                    verbose: bool = False,
+                    ):
     if verbose:
         ic(target)
         ic(link_name)
@@ -60,12 +83,15 @@ def symlink_or_exit(target, link_name, confirm=False, verbose=False):
     try:
         os.symlink(target, link_name)
     except Exception as e:
-        print("Got Exception: %s", e)
-        print("Unable to symlink link_name: %s to target: %s Exiting." % (link_name, target))
-        sys.exit(1)
+        eprint('Got Exception: %s', e)
+        eprint('Unable to symlink link_name: %s to target: %s Exiting.' % (link_name, target))
+        raise e
 
 
-def mkdir_or_exit(folder, confirm, verbose):
+def mkdir_or_exit(folder,
+                  confirm: bool,
+                  verbose: bool,
+                  ):
     if verbose:
         ic(folder)
     if confirm:
@@ -78,7 +104,10 @@ def mkdir_or_exit(folder, confirm, verbose):
         sys.exit(1)
 
 
-def move_path_to_old(path, confirm, verbose):
+def move_path_to_old(path,
+                     confirm: bool,
+                     verbose: bool,
+                     ):
     path = Path(path).resolve()
     timestamp = str(time.time())
     dest = path.with_name(path.name + '._symlinktree_old.' + timestamp)
@@ -89,7 +118,12 @@ def move_path_to_old(path, confirm, verbose):
     move(path.as_posix(), dest)
 
 
-def process_infile(root, skel, infile, confirm, verbose=False):
+def process_infile(root,
+                   skel,
+                   infile,
+                   confirm: bool,
+                   verbose: bool = False,
+                   ):
     assert '._symlinktree_old.' not in infile.as_posix()
     global SKIP_DIRS
     ic("")
@@ -175,7 +209,9 @@ def process_infile(root, skel, infile, confirm, verbose=False):
     symlink_or_exit(infile, dest_file, confirm=confirm, verbose=verbose)
 
 
-def skip_path(infile, verbose):
+def skip_path(infile,
+              verbose: bool,
+              ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
             if verbose:
@@ -184,7 +220,12 @@ def skip_path(infile, verbose):
     return False
 
 
-def process_skel(root, skel, count, confirm, verbose=False):
+def process_skel(root,
+                 skel,
+                 count,
+                 confirm: bool,
+                 verbose: bool = False,
+                 ):
     if verbose:
         ic(root)
         ic(skel)
@@ -204,12 +245,32 @@ def process_skel(root, skel, count, confirm, verbose=False):
 
 
 @click.command()
-@click.argument("sysskel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=True)
-@click.option("--count", type=int, required=False)
-@click.option("--re-apply-skel", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=str, allow_dash=False), nargs=1, required=False)
-@click.option("--verbose", is_flag=True)
-@click.option("--confirm", is_flag=True)
-def cli(sysskel, count, re_apply_skel, verbose, confirm):
+@click.argument("sysskel",
+                type=click.Path(exists=True,
+                                dir_okay=True,
+                                file_okay=False,
+                                path_type=str,
+                                allow_dash=False,),
+                          nargs=1,
+                          required=True,)
+@click.option("--count", type=int, required=False,)
+@click.option("--re-apply-skel",
+              type=click.Path(exists=True,
+                              dir_okay=True,
+                              file_okay=False,
+                              path_type=str,
+                              allow_dash=False,),
+              nargs=1,
+              required=False,)
+@click.option("--verbose", is_flag=True,)
+@click.option("--confirm", is_flag=True,)
+def cli(sysskel,
+        count,
+        re_apply_skel,
+        verbose: bool,
+        confirm: bool,
+        ):
+
     global SKIP_DIRS
 
     sysskel = Path(sysskel).resolve()
