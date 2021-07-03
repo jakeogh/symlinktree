@@ -29,8 +29,8 @@ from pathlib import Path
 from shutil import move
 
 import click
-from dirtool import path_is_dir
 from getdents import paths
+from pathtool import path_is_dir
 
 global SKIP_DIRS
 SKIP_DIRS = set()
@@ -47,13 +47,6 @@ try:
 except ImportError:
     ic = eprint
 
-
-#def path_is_dir(path):
-#    if os.path.isdir(path):  # could still be a symlink
-#        if os.path.islink(path):
-#            return False
-#        return True
-#    return False
 
 
 def is_broken_symlink(path):
