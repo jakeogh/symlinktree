@@ -29,24 +29,13 @@ from pathlib import Path
 from shutil import move
 
 import click
+from asserttool import eprint
+from asserttool import ic
 from getdents import paths
 from pathtool import path_is_dir
 
 global SKIP_DIRS
 SKIP_DIRS = set()
-
-
-def eprint(*args, **kwargs):
-    if 'file' in kwargs.keys():
-        kwargs.pop('file')
-    print(*args, file=sys.stderr, **kwargs)
-
-
-try:
-    from icecream import ic  # https://github.com/gruns/icecream
-except ImportError:
-    ic = eprint
-
 
 
 def is_broken_symlink(path):
@@ -61,8 +50,9 @@ def is_unbroken_symlink(path):
     return False  # path isnt a symlink
 
 
-def symlink_or_exit(target,
-                    link_name,
+def symlink_or_exit(*,
+                    target: Path,
+                    link_name: Path,
                     confirm: bool = False,
                     verbose: bool = False,
                     ):
@@ -145,7 +135,7 @@ def process_infile(root,
         assert not dest_dir.is_file()
 
         if not dest_dir.exists():
-            symlink_or_exit(infile.parent, dest_dir, confirm=confirm, verbose=verbose)
+            symlink_or_exit(target=infile.parent, link_name=dest_dir, confirm=confirm, verbose=verbose)
             return
 
         if is_unbroken_symlink(dest_dir):
@@ -162,7 +152,7 @@ def process_infile(root,
 
         elif path_is_dir(dest_dir):
             move_path_to_old(dest_dir, confirm=confirm, verbose=verbose)  # might want to just rm broken symlinks
-            symlink_or_exit(infile.parent, dest_dir, confirm=confirm, verbose=verbose)
+            symlink_or_exit(target=infile.parent, link_name=dest_dir, confirm=confirm, verbose=verbose)
             return
 
     if is_broken_symlink(infile):   # dont process broken symlinks
@@ -199,7 +189,7 @@ def process_infile(root,
         ic("making dest_dir:", dest_dir)
         mkdir_or_exit(dest_dir, confirm=confirm, verbose=verbose)
 
-    symlink_or_exit(infile, dest_file, confirm=confirm, verbose=verbose)
+    symlink_or_exit(target=infile, link_name=dest_file, confirm=confirm, verbose=verbose)
 
 
 def skip_path(infile,
