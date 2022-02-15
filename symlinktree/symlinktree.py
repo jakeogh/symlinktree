@@ -27,6 +27,7 @@ import sys
 import time
 from pathlib import Path
 from shutil import move
+from typing import Union
 
 import click
 from asserttool import ic
@@ -36,7 +37,6 @@ from clicktool import tv
 from eprint import eprint
 from getdents import paths
 from pathtool import path_is_dir
-from typimg import Union
 
 global SKIP_DIRS
 SKIP_DIRS = set()
