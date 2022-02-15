@@ -29,22 +29,26 @@ from pathlib import Path
 from shutil import move
 
 import click
-from asserttool import eprint
 from asserttool import ic
+from clicktool import click_add_options
+from clicktool import click_global_options
+from clicktool import tv
+from eprint import eprint
 from getdents import paths
 from pathtool import path_is_dir
+from typimg import Union
 
 global SKIP_DIRS
 SKIP_DIRS = set()
 
 
-def is_broken_symlink(path):
+def is_broken_symlink(path: Path):
     if os.path.islink(path):  # path is a symlink
         return not os.path.exists(path)  # returns False for broken symlinks
     return False  # path isnt a symlink
 
 
-def is_unbroken_symlink(path):
+def is_unbroken_symlink(path: Path):
     if os.path.islink(path):  # path is a symlink
         return os.path.exists(path)  # returns False for broken symlinks
     return False  # path isnt a symlink
@@ -54,7 +58,7 @@ def symlink_or_exit(*,
                     target: Path,
                     link_name: Path,
                     confirm: bool = False,
-                    verbose: bool = False,
+                    verbose: Union[bool, int, float],
                     ):
     if verbose:
         ic(target)
@@ -71,9 +75,9 @@ def symlink_or_exit(*,
         raise e
 
 
-def mkdir_or_exit(folder,
+def mkdir_or_exit(folder: Path,
                   confirm: bool,
-                  verbose: bool,
+                  verbose: Union[bool, int, float],
                   ):
     if verbose:
         ic(folder)
@@ -87,9 +91,9 @@ def mkdir_or_exit(folder,
         sys.exit(1)
 
 
-def move_path_to_old(path,
+def move_path_to_old(path: Path,
                      confirm: bool,
-                     verbose: bool,
+                     verbose: Union[bool, int, float],
                      ):
     path = Path(path).resolve()
     timestamp = str(time.time())
@@ -105,7 +109,7 @@ def process_infile(root,
                    skel,
                    infile,
                    confirm: bool,
-                   verbose: bool = False,
+                   verbose: Union[bool, int, float],
                    ):
     assert '._symlinktree_old.' not in infile.as_posix()
     global SKIP_DIRS
@@ -193,7 +197,7 @@ def process_infile(root,
 
 
 def skip_path(infile,
-              verbose: bool,
+              verbose: Union[bool, int, float],
               ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
@@ -207,7 +211,7 @@ def process_skel(root,
                  skel,
                  count,
                  confirm: bool,
-                 verbose: bool = False,
+                 verbose: Union[bool, int, float],
                  ):
     if verbose:
         ic(root)
@@ -218,7 +222,7 @@ def process_skel(root,
                                          return_files=True,
                                          return_symlinks=True,
                                          verbose=verbose,
-                                         debug=False,)):
+                                         )):
         if count:
             if index >= count:
                 return
@@ -232,7 +236,7 @@ def process_skel(root,
                 type=click.Path(exists=True,
                                 dir_okay=True,
                                 file_okay=False,
-                                path_type=str,
+                                path_type=Path,
                                 allow_dash=False,),
                           nargs=1,
                           required=True,)
@@ -241,18 +245,26 @@ def process_skel(root,
               type=click.Path(exists=True,
                               dir_okay=True,
                               file_okay=False,
-                              path_type=str,
+                              path_type=Path,
                               allow_dash=False,),
               nargs=1,
               required=False,)
-@click.option("--verbose", is_flag=True,)
 @click.option("--confirm", is_flag=True,)
-def cli(sysskel,
-        count,
-        re_apply_skel,
-        verbose: bool,
+@click_add_options(click_global_options)
+@click.pass_context
+def cli(ctx,
+        sysskel: Path,
+        count: int,
+        re_apply_skel: Path,
+        verbose: Union[bool, int, float],
+        verbose_inf: bool,
         confirm: bool,
         ):
+
+    tty, verbose = tv(ctx=ctx,
+                      verbose=verbose,
+                      verbose_inf=verbose_inf,
+                      )
 
     global SKIP_DIRS
 
