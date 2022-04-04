@@ -54,12 +54,13 @@ def is_unbroken_symlink(path: Path):
     return False  # path isnt a symlink
 
 
-def symlink_or_exit(*,
-                    target: Path,
-                    link_name: Path,
-                    confirm: bool = False,
-                    verbose: Union[bool, int, float],
-                    ):
+def symlink_or_exit(
+    *,
+    target: Path,
+    link_name: Path,
+    confirm: bool = False,
+    verbose: Union[bool, int, float],
+):
     if verbose:
         ic(target)
         ic(link_name)
@@ -70,15 +71,19 @@ def symlink_or_exit(*,
     try:
         os.symlink(target, link_name)
     except Exception as e:
-        eprint('Got Exception: %s', e)
-        eprint('Unable to symlink link_name: %s to target: %s Exiting.' % (link_name, target))
+        eprint("Got Exception: %s", e)
+        eprint(
+            "Unable to symlink link_name: %s to target: %s Exiting."
+            % (link_name, target)
+        )
         raise e
 
 
-def mkdir_or_exit(folder: Path,
-                  confirm: bool,
-                  verbose: Union[bool, int, float],
-                  ):
+def mkdir_or_exit(
+    folder: Path,
+    confirm: bool,
+    verbose: Union[bool, int, float],
+):
     if verbose:
         ic(folder)
     if confirm:
@@ -91,13 +96,14 @@ def mkdir_or_exit(folder: Path,
         sys.exit(1)
 
 
-def move_path_to_old(path: Path,
-                     confirm: bool,
-                     verbose: Union[bool, int, float],
-                     ):
+def move_path_to_old(
+    path: Path,
+    confirm: bool,
+    verbose: Union[bool, int, float],
+):
     path = Path(path).resolve()
     timestamp = str(time.time())
-    dest = path.with_name(path.name + '._symlinktree_old.' + timestamp)
+    dest = path.with_name(path.name + "._symlinktree_old." + timestamp)
     if verbose:
         ic("{} -> {}".format(path, dest))
     if confirm:
@@ -105,13 +111,14 @@ def move_path_to_old(path: Path,
     move(path.as_posix(), dest)
 
 
-def process_infile(root,
-                   skel,
-                   infile,
-                   confirm: bool,
-                   verbose: Union[bool, int, float],
-                   ):
-    assert '._symlinktree_old.' not in infile.as_posix()
+def process_infile(
+    root,
+    skel,
+    infile,
+    confirm: bool,
+    verbose: Union[bool, int, float],
+):
+    assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
     ic("")
     ic(infile)
@@ -119,8 +126,8 @@ def process_infile(root,
     if infile == skel:
         return
 
-    if root == Path('/root'):
-        if infile.name == '.ssh':
+    if root == Path("/root"):
+        if infile.name == ".ssh":
             return
 
     if verbose:
@@ -130,7 +137,7 @@ def process_infile(root,
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
 
-    possible_symlink_dir = Path(infile.parent / Path('.symlink_dir'))  # walrus!
+    possible_symlink_dir = Path(infile.parent / Path(".symlink_dir"))  # walrus!
 
     if possible_symlink_dir.exists():
         ic("found .symlink_dir dotfile:", possible_symlink_dir)
@@ -139,7 +146,12 @@ def process_infile(root,
         assert not dest_dir.is_file()
 
         if not dest_dir.exists():
-            symlink_or_exit(target=infile.parent, link_name=dest_dir, confirm=confirm, verbose=verbose)
+            symlink_or_exit(
+                target=infile.parent,
+                link_name=dest_dir,
+                confirm=confirm,
+                verbose=verbose,
+            )
             return
 
         if is_unbroken_symlink(dest_dir):
@@ -155,15 +167,22 @@ def process_infile(root,
                 sys.exit(1)  # todo
 
         elif path_is_dir(dest_dir):
-            move_path_to_old(dest_dir, confirm=confirm, verbose=verbose)  # might want to just rm broken symlinks
-            symlink_or_exit(target=infile.parent, link_name=dest_dir, confirm=confirm, verbose=verbose)
+            move_path_to_old(
+                dest_dir, confirm=confirm, verbose=verbose
+            )  # might want to just rm broken symlinks
+            symlink_or_exit(
+                target=infile.parent,
+                link_name=dest_dir,
+                confirm=confirm,
+                verbose=verbose,
+            )
             return
 
-    if is_broken_symlink(infile):   # dont process broken symlinks
+    if is_broken_symlink(infile):  # dont process broken symlinks
         return
 
-    if not infile.is_symlink():         # is_dir() returns true for symlinks to dirs
-        if infile.is_dir():             # dont make symlinks to dirs unless .symlink_dir exists
+    if not infile.is_symlink():  # is_dir() returns true for symlinks to dirs
+        if infile.is_dir():  # dont make symlinks to dirs unless .symlink_dir exists
             return
 
     dest_file = root / infile.relative_to(skel)
@@ -175,7 +194,9 @@ def process_infile(root,
         ic("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
     elif is_unbroken_symlink(dest_file):
-        if dest_file.resolve() == infile.resolve():  # must resolve() infile cuz it could also be a symlink
+        if (
+            dest_file.resolve() == infile.resolve()
+        ):  # must resolve() infile cuz it could also be a symlink
             ic("skipping pre-existing correctly linked dest file")
             return
         if verbose:
@@ -186,19 +207,25 @@ def process_infile(root,
 
     if not os.path.islink(dest_file):
         if dest_file.exists():
-            ic("attempting to move pre-existing dest file to make way for symlink dest_file:", dest_file)
+            ic(
+                "attempting to move pre-existing dest file to make way for symlink dest_file:",
+                dest_file,
+            )
             move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
 
     if not dest_dir.exists():
         ic("making dest_dir:", dest_dir)
         mkdir_or_exit(dest_dir, confirm=confirm, verbose=verbose)
 
-    symlink_or_exit(target=infile, link_name=dest_file, confirm=confirm, verbose=verbose)
+    symlink_or_exit(
+        target=infile, link_name=dest_file, confirm=confirm, verbose=verbose
+    )
 
 
-def skip_path(infile,
-              verbose: Union[bool, int, float],
-              ):
+def skip_path(
+    infile,
+    verbose: Union[bool, int, float],
+):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
             if verbose:
@@ -207,64 +234,88 @@ def skip_path(infile,
     return False
 
 
-def process_skel(root,
-                 skel,
-                 count,
-                 confirm: bool,
-                 verbose: Union[bool, int, float],
-                 ):
+def process_skel(
+    root,
+    skel,
+    count,
+    confirm: bool,
+    verbose: Union[bool, int, float],
+):
     if verbose:
         ic(root)
         ic(skel)
 
-    for index, infile in enumerate(paths(skel,
-                                         return_dirs=True,
-                                         return_files=True,
-                                         return_symlinks=True,
-                                         verbose=verbose,
-                                         )):
+    for index, infile in enumerate(
+        paths(
+            skel,
+            return_dirs=True,
+            return_files=True,
+            return_symlinks=True,
+            verbose=verbose,
+        )
+    ):
         if count:
             if index >= count:
                 return
         infile = infile.pathlib
         if not skip_path(infile, verbose=verbose):
-            process_infile(root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose)
+            process_infile(
+                root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose
+            )
 
 
 @click.command()
-@click.argument("sysskel",
-                type=click.Path(exists=True,
-                                dir_okay=True,
-                                file_okay=False,
-                                path_type=Path,
-                                allow_dash=False,),
-                          nargs=1,
-                          required=True,)
-@click.option("--count", type=int, required=False,)
-@click.option("--re-apply-skel",
-              type=click.Path(exists=True,
-                              dir_okay=True,
-                              file_okay=False,
-                              path_type=Path,
-                              allow_dash=False,),
-              nargs=1,
-              required=False,)
-@click.option("--confirm", is_flag=True,)
+@click.argument(
+    "sysskel",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=False,
+        path_type=Path,
+        allow_dash=False,
+    ),
+    nargs=1,
+    required=True,
+)
+@click.option(
+    "--count",
+    type=int,
+    required=False,
+)
+@click.option(
+    "--re-apply-skel",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=False,
+        path_type=Path,
+        allow_dash=False,
+    ),
+    nargs=1,
+    required=False,
+)
+@click.option(
+    "--confirm",
+    is_flag=True,
+)
 @click_add_options(click_global_options)
 @click.pass_context
-def cli(ctx,
-        sysskel: Path,
-        count: int,
-        re_apply_skel: Path,
-        verbose: Union[bool, int, float],
-        verbose_inf: bool,
-        confirm: bool,
-        ):
+def cli(
+    ctx,
+    sysskel: Path,
+    count: int,
+    re_apply_skel: Path,
+    verbose: Union[bool, int, float],
+    verbose_inf: bool,
+    dict_input: bool,
+    confirm: bool,
+):
 
-    tty, verbose = tv(ctx=ctx,
-                      verbose=verbose,
-                      verbose_inf=verbose_inf,
-                      )
+    tty, verbose = tv(
+        ctx=ctx,
+        verbose=verbose,
+        verbose_inf=verbose_inf,
+    )
 
     global SKIP_DIRS
 
@@ -277,9 +328,13 @@ def cli(ctx,
     if re_apply_skel:
         ic("\n\nre-applying skel")
         path = Path(re_apply_skel)
-        assert str(path) in ['/root', '/home/user']
-        skel = Path(sysskel) / Path('etc/skel')
+        assert str(path) in ["/root", "/home/user"]
+        skel = Path(sysskel) / Path("etc/skel")
         assert path_is_dir(skel)
-        process_skel(root=Path(path), skel=skel, count=count, confirm=confirm, verbose=verbose)
+        process_skel(
+            root=Path(path), skel=skel, count=count, confirm=confirm, verbose=verbose
+        )
     else:
-        process_skel(root=Path('/'), skel=sysskel, count=count, confirm=confirm, verbose=verbose)
+        process_skel(
+            root=Path("/"), skel=sysskel, count=count, confirm=confirm, verbose=verbose
+        )
