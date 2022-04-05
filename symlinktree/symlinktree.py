@@ -25,6 +25,7 @@
 import os
 import sys
 import time
+from math import inf
 from pathlib import Path
 from shutil import move
 from typing import Union
@@ -332,6 +333,7 @@ def cli(
         assert str(path) in ["/root", "/home/user"]
         skel = Path(sysskel) / Path("etc/skel")
         assert path_is_dir(skel)
+        assert verbose == inf
         process_skel(
             root=Path(path), skel=skel, count=count, confirm=confirm, verbose=verbose
         )
