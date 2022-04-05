@@ -66,16 +66,13 @@ def symlink_or_exit(
         ic(link_name)
 
     if confirm:
-        input("press enter to os.symlink({}, {})".format(target, link_name))
+        input(f"press enter to os.symlink({target}, {link_name})")
 
     try:
         os.symlink(target, link_name)
     except Exception as e:
         eprint("Got Exception: %s", e)
-        eprint(
-            "Unable to symlink link_name: %s to target: %s Exiting."
-            % (link_name, target)
-        )
+        eprint(f"Unable to symlink link_name: {link_name} to target: {target} Exiting.")
         raise e
 
 
@@ -87,12 +84,12 @@ def mkdir_or_exit(
     if verbose:
         ic(folder)
     if confirm:
-        input("press enter to os.makedirs({})".format(folder))
+        input(f"press enter to os.makedirs({folder})")
     try:
         os.makedirs(folder)
     except Exception as e:
         ic("Exception: %s", e)
-        ic("Unable to os.mkdir(%s). Exiting.", folder)
+        ic(f"Unable to os.mkdir({folder}). Exiting.")
         sys.exit(1)
 
 
@@ -105,22 +102,22 @@ def move_path_to_old(
     timestamp = str(time.time())
     dest = path.with_name(path.name + "._symlinktree_old." + timestamp)
     if verbose:
-        ic("{} -> {}".format(path, dest))
+        ic(f"{path} -> {dest}")
     if confirm:
-        input("press enter to move({}, {})".format(path, dest))
+        input(f"press enter to move({path}, {dest})")
     move(path.as_posix(), dest)
 
 
 def process_infile(
-    root,
-    skel,
-    infile,
+    root: Path,
+    skel: Path,
+    infile: Path,
     confirm: bool,
     verbose: Union[bool, int, float],
 ):
     assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
-    ic("")
+    eprint("")
     ic(infile)
 
     if infile == skel:
@@ -160,7 +157,7 @@ def process_infile(
 
         if is_broken_symlink(dest_dir):
             if is_broken_symlink(infile):
-                ic("infile: {} is a broken symlink, skipping".format(infile))
+                ic(f"infile: {infile} is a broken symlink, skipping")
                 return
             if verbose:
                 ic("found broken symlink:", dest_dir)
@@ -189,7 +186,7 @@ def process_infile(
     ic(dest_file)
     if is_broken_symlink(dest_file):
         if is_broken_symlink(infile):
-            ic("infile: {} is a broken symlink, skipping".format(infile))
+            ic(f"infile: {infile} is a broken symlink, skipping")
             return
         ic("found broken symlink at dest_file:", dest_file, "moving it to .old")
         move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
@@ -229,21 +226,20 @@ def skip_path(
     for parent in infile.parents:
         if parent in SKIP_DIRS:
             if verbose:
-                ic("skipping: {} parent {} in SKIP_DIRS:".format(infile, parent))
+                ic(f"skipping: {infile} parent {parent} in SKIP_DIRS:")
             return True
     return False
 
 
 def process_skel(
-    root,
-    skel,
-    count,
+    root: Path,
+    skel: Path,
+    count: int,
     confirm: bool,
     verbose: Union[bool, int, float],
 ):
     if verbose:
-        ic(root)
-        ic(skel)
+        ic(root, skel)
 
     for index, infile in enumerate(
         paths(
@@ -260,7 +256,11 @@ def process_skel(
         infile = infile.pathlib
         if not skip_path(infile, verbose=verbose):
             process_infile(
-                root=root, skel=skel, infile=infile, confirm=confirm, verbose=verbose
+                root=root,
+                skel=skel,
+                infile=infile.pathlib(),
+                confirm=confirm,
+                verbose=verbose,
             )
 
 
