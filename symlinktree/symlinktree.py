@@ -253,12 +253,12 @@ def process_skel(
         if count:
             if index >= count:
                 return
-        infile = infile.pathlib
+        _infile = infile.pathlib
         if not skip_path(infile, verbose=verbose):
             process_infile(
                 root=root,
                 skel=skel,
-                infile=infile.pathlib(),
+                infile=_infile,
                 confirm=confirm,
                 verbose=verbose,
             )
