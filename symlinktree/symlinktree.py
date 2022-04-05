@@ -220,7 +220,7 @@ def process_infile(
 
 
 def skip_path(
-    infile,
+    infile: Path,
     verbose: Union[bool, int, float],
 ):
     for parent in infile.parents:
@@ -254,7 +254,8 @@ def process_skel(
             if index >= count:
                 return
         _infile = infile.pathlib
-        if not skip_path(infile, verbose=verbose):
+        del infile
+        if not skip_path(_infile, verbose=verbose):
             process_infile(
                 root=root,
                 skel=skel,
