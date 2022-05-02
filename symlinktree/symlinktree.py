@@ -87,10 +87,6 @@ def process_infile(
     if verbose:
         ic(root, skel)
 
-    if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
-        ic(infile.parent, "has ancestor with .symlink_dir, skipping")
-        return
-
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
 
@@ -141,6 +137,10 @@ def process_infile(
     if not infile.is_symlink():  # is_dir() returns true for symlinks to dirs
         if infile.is_dir():  # dont make symlinks to dirs unless .symlink_dir exists
             return
+
+    if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
+        ic(infile.parent, "has ancestor with .symlink_dir, skipping")
+        return
 
     dest_file = root / infile.relative_to(skel)
     ic(dest_file)
