@@ -44,6 +44,7 @@ from pathtool import make_file_not_immutable  # todo, reset +i
 from pathtool import mkdir_or_exit
 from pathtool import path_is_dir
 from pathtool import symlink_or_exit
+from walkup_until_found import walkup_until_found
 
 global SKIP_DIRS
 SKIP_DIRS = set()
@@ -85,6 +86,10 @@ def process_infile(
 
     if verbose:
         ic(root, skel)
+
+    if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
+        ic(infile.parent, "has ancestor with .symlink_dir, skipping")
+        return
 
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
