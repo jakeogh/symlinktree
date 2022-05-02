@@ -138,9 +138,12 @@ def process_infile(
         if infile.is_dir():  # dont make symlinks to dirs unless .symlink_dir exists
             return
 
-    if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
-        ic(infile.parent, "has ancestor with .symlink_dir, skipping")
-        return
+    try:
+        if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
+            ic(infile.parent, "has ancestor with .symlink_dir, skipping")
+            return
+    except FileNotFoundError:
+        pass
 
     dest_file = root / infile.relative_to(skel)
     ic(dest_file)
