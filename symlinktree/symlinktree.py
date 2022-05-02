@@ -208,7 +208,13 @@ def process_infile(
                 "attempting to move pre-existing dest file to make way for symlink dest_file:",
                 dest_file,
             )
-            move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+            try:
+                move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+            except PermissionError as e:
+                ic(e)
+                if e.errno == 1:  # "Operation not permitted"
+                    dest_file.chmod(0o640)
+                    move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
 
     if not dest_dir.exists():
         ic("making dest_dir:", dest_dir)
