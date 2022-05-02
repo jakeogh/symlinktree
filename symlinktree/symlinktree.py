@@ -23,6 +23,7 @@
 
 
 import os
+import stat
 import sys
 import time
 from math import inf
@@ -37,6 +38,7 @@ from clicktool import click_global_options
 from clicktool import tv
 from eprint import eprint
 from getdents import paths
+from pathtool import make_file_not_immutable  # todo, reset +i
 from pathtool import path_is_dir
 
 global SKIP_DIRS
@@ -213,8 +215,13 @@ def process_infile(
             except PermissionError as e:
                 ic(e)
                 if e.errno == 1:  # "Operation not permitted"
+                    make_file_not_immutable(path=dest_file, verbose=verbose)
+                    # orig_mode = dest_file.lstat().st_mode
+                    # temp_mode = orig_mode & ~stat.UF_IMMUTABLE
+                    # os.chattr(dest_file, temp_mode)
                     dest_file.chmod(0o640)
                     move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+                    # os.chattr(dest_file, temp_mode)
 
     if not dest_dir.exists():
         ic("making dest_dir:", dest_dir)
