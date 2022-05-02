@@ -129,8 +129,7 @@ def process_infile(
             return
 
     if verbose:
-        ic(root)
-        ic(skel)
+        ic(root, skel)
 
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
@@ -255,6 +254,8 @@ def process_skel(
             if index >= count:
                 return
         _infile = infile.pathlib
+        if verbose == inf:
+            ic(_infile)
         del infile
         if not skip_path(_infile, verbose=verbose):
             process_infile(
