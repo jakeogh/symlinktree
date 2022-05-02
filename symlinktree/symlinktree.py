@@ -23,7 +23,7 @@
 
 
 import os
-import stat
+# import stat
 import sys
 import time
 from math import inf
@@ -38,62 +38,15 @@ from clicktool import click_global_options
 from clicktool import tv
 from eprint import eprint
 from getdents import paths
+from pathtool import is_broken_symlink
+from pathtool import is_unbroken_symlink
 from pathtool import make_file_not_immutable  # todo, reset +i
+from pathtool import mkdir_or_exit
 from pathtool import path_is_dir
+from pathtool import symlink_or_exit
 
 global SKIP_DIRS
 SKIP_DIRS = set()
-
-
-def is_broken_symlink(path: Path):
-    if os.path.islink(path):  # path is a symlink
-        return not os.path.exists(path)  # returns False for broken symlinks
-    return False  # path isnt a symlink
-
-
-def is_unbroken_symlink(path: Path):
-    if os.path.islink(path):  # path is a symlink
-        return os.path.exists(path)  # returns False for broken symlinks
-    return False  # path isnt a symlink
-
-
-def symlink_or_exit(
-    *,
-    target: Path,
-    link_name: Path,
-    confirm: bool = False,
-    verbose: Union[bool, int, float],
-):
-    if verbose:
-        ic(target)
-        ic(link_name)
-
-    if confirm:
-        input(f"press enter to os.symlink({target}, {link_name})")
-
-    try:
-        os.symlink(target, link_name)
-    except Exception as e:
-        eprint("Got Exception: %s", e)
-        eprint(f"Unable to symlink link_name: {link_name} to target: {target} Exiting.")
-        raise e
-
-
-def mkdir_or_exit(
-    folder: Path,
-    confirm: bool,
-    verbose: Union[bool, int, float],
-):
-    if verbose:
-        ic(folder)
-    if confirm:
-        input(f"press enter to os.makedirs({folder})")
-    try:
-        os.makedirs(folder)
-    except Exception as e:
-        ic("Exception: %s", e)
-        ic(f"Unable to os.mkdir({folder}). Exiting.")
-        sys.exit(1)
 
 
 def move_path_to_old(
