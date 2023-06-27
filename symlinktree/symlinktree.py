@@ -22,7 +22,6 @@
 from __future__ import annotations
 
 import os
-# import stat
 import sys
 import time
 from math import inf
@@ -51,7 +50,7 @@ SKIP_DIRS = set()
 def move_path_to_old(
     path: Path,
     confirm: bool,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     path = Path(path).resolve()
     timestamp = str(time.time())
@@ -68,7 +67,7 @@ def process_infile(
     skel: Path,
     infile: Path,
     confirm: bool,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
@@ -193,7 +192,7 @@ def process_infile(
 
 def skip_path(
     infile: Path,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
@@ -208,7 +207,7 @@ def process_skel(
     skel: Path,
     count: int,
     confirm: bool,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     if verbose:
         ic(root, skel)
@@ -280,12 +279,11 @@ def cli(
     sysskel: Path,
     count: int,
     re_apply_skel: Path,
-    verbose: bool | int | float,
     verbose_inf: bool,
     dict_output: bool,
     confirm: bool,
+    verbose: bool | int | float = False,
 ):
-
     tty, verbose = tv(
         ctx=ctx,
         verbose=verbose,
