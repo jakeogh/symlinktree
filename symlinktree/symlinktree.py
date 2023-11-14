@@ -32,9 +32,10 @@ import click
 from asserttool import ic
 from clicktool import click_add_options
 from clicktool import click_global_options
-from clicktool import tv
+from clicktool import tvicgvd
 from eprint import eprint
 from getdents import paths
+from globalverbose import gvd
 from pathtool import is_broken_symlink
 from pathtool import is_unbroken_symlink
 from pathtool import make_file_not_immutable  # todo, reset +i
@@ -50,7 +51,7 @@ SKIP_DIRS = set()
 def move_path_to_old(
     path: Path,
     confirm: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     path = Path(path).resolve()
     timestamp = str(time.time())
@@ -67,7 +68,7 @@ def process_infile(
     skel: Path,
     infile: Path,
     confirm: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
@@ -86,6 +87,10 @@ def process_infile(
 
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
+
+    possible_skip = Path(infile.parent / Path(".skip_dir"))
+    if possible_skip.exists():
+        return
 
     possible_symlink_dir = Path(infile.parent / Path(".symlink_dir"))  # walrus!
 
@@ -192,7 +197,7 @@ def process_infile(
 
 def skip_path(
     infile: Path,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
@@ -207,7 +212,7 @@ def process_skel(
     skel: Path,
     count: int,
     confirm: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     if verbose:
         ic(root, skel)
@@ -282,12 +287,14 @@ def cli(
     verbose_inf: bool,
     dict_output: bool,
     confirm: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
-    tty, verbose = tv(
+    tty, verbose = tvicgvd(
         ctx=ctx,
         verbose=verbose,
         verbose_inf=verbose_inf,
+        ic=ic,
+        gvd=gvd,
     )
 
     global SKIP_DIRS
