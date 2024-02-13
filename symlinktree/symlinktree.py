@@ -204,8 +204,7 @@ def skip_path(
 ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
-            if verbose:
-                ic(f"skipping: {infile} parent {parent} in SKIP_DIRS:")
+            ic(f"skipping: {infile} parent {parent} in SKIP_DIRS:")
             return True
     return False
 
