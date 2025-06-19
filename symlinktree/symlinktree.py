@@ -82,10 +82,10 @@ def process_infile(
         if infile.name == ".ssh":
             return
 
-    ic(root, skel)
+    eprint(f"{root=}", f"{skel=}")
 
     dest_dir = Path(root / infile.relative_to(skel)).parent
-    ic(dest_dir)
+    eprint(f"{dest_dir=}")
 
     possible_skip = Path(infile.parent / Path(".skip_dir"))
     if possible_skip.exists():
@@ -244,7 +244,7 @@ def process_skel(
                 return
         _infile = infile.pathlib
         if gvd:
-            ic(_infile)
+            eprint(f"{_infile=}")
         del infile
         if not skip_path(
             _infile,
