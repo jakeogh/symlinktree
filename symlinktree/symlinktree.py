@@ -73,7 +73,7 @@ def process_infile(
     assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
     eprint("")
-    ic(infile)
+    eprint(f"{infile=}")
 
     if infile == skel:
         return
@@ -218,7 +218,7 @@ def skip_path(
 ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
-            ic(f"skipping: {infile} parent {parent} in SKIP_DIRS:")
+            eprint(f"skipping: {infile} parent {parent} in SKIP_DIRS:")
             return True
     return False
 
