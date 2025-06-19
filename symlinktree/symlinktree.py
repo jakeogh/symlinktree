@@ -54,13 +54,11 @@ SKIP_DIRS = set()
 def move_path_to_old(
     path: Path,
     confirm: bool,
-    verbose: bool = False,
 ):
     path = Path(path).resolve()
     timestamp = str(time.time())
     dest = path.with_name(path.name + "._symlinktree_old." + timestamp)
-    if verbose:
-        ic(f"{path} -> {dest}")
+    ic(f"{path} -> {dest}")
     if confirm:
         input(f"press enter to move({path}, {dest})")
     move(path.as_posix(), dest)
@@ -71,7 +69,6 @@ def process_infile(
     skel: Path,
     infile: Path,
     confirm: bool,
-    verbose: bool = False,
 ):
     assert "._symlinktree_old." not in infile.as_posix()
     global SKIP_DIRS
@@ -85,8 +82,7 @@ def process_infile(
         if infile.name == ".ssh":
             return
 
-    if verbose:
-        ic(root, skel)
+    ic(root, skel)
 
     dest_dir = Path(root / infile.relative_to(skel)).parent
     ic(dest_dir)
@@ -108,7 +104,6 @@ def process_infile(
                 target=infile.parent,
                 link_name=dest_dir,
                 confirm=confirm,
-                verbose=verbose,
             )
             return
 
@@ -120,19 +115,18 @@ def process_infile(
             if is_broken_symlink(infile):
                 ic(f"infile: {infile} is a broken symlink, skipping")
                 return
-            if verbose:
-                ic("found broken symlink:", dest_dir)
-                sys.exit(1)  # todo
+            ic("found broken symlink:", dest_dir)
+            sys.exit(1)  # todo
 
         elif path_is_dir(dest_dir):
             move_path_to_old(
-                dest_dir, confirm=confirm, verbose=verbose
+                dest_dir,
+                confirm=confirm,
             )  # might want to just rm broken symlinks
             symlink_or_exit(
                 target=infile.parent,
                 link_name=dest_dir,
                 confirm=confirm,
-                verbose=verbose,
             )
             return
 
@@ -144,7 +138,10 @@ def process_infile(
             return
 
     try:
-        if walkup_until_found(path=infile.parent, name=".symlink_dir", verbose=verbose):
+        if walkup_until_found(
+            path=infile.parent,
+            name=".symlink_dir",
+        ):
             ic(infile.parent, "has ancestor with .symlink_dir, skipping")
             return
     except FileNotFoundError:
@@ -157,18 +154,23 @@ def process_infile(
             ic(f"infile: {infile} is a broken symlink, skipping")
             return
         ic("found broken symlink at dest_file:", dest_file, "moving it to .old")
-        move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+        move_path_to_old(
+            dest_file,
+            confirm=confirm,
+        )
     elif is_unbroken_symlink(dest_file):
         if (
             dest_file.resolve() == infile.resolve()
         ):  # must resolve() infile cuz it could also be a symlink
             ic("skipping pre-existing correctly linked dest file")
             return
-        if verbose:
-            ic("moving incorrectly linked symlink")
-            ic(dest_file.resolve())
-            ic(infile)
-        move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+        ic("moving incorrectly linked symlink")
+        ic(dest_file.resolve())
+        ic(infile)
+        move_path_to_old(
+            dest_file,
+            confirm=confirm,
+        )
 
     if not os.path.islink(dest_file):
         if dest_file.exists():
@@ -177,30 +179,42 @@ def process_infile(
                 dest_file,
             )
             try:
-                move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+                move_path_to_old(
+                    dest_file,
+                    confirm=confirm,
+                )
             except PermissionError as e:
                 ic(e)
                 if e.errno == 1:  # "Operation not permitted"
-                    make_file_not_immutable(path=dest_file, verbose=verbose)
+                    make_file_not_immutable(
+                        path=dest_file,
+                    )
                     # orig_mode = dest_file.lstat().st_mode
                     # temp_mode = orig_mode & ~stat.UF_IMMUTABLE
                     # os.chattr(dest_file, temp_mode)
                     dest_file.chmod(0o640)
-                    move_path_to_old(dest_file, confirm=confirm, verbose=verbose)
+                    move_path_to_old(
+                        dest_file,
+                        confirm=confirm,
+                    )
                     # os.chattr(dest_file, temp_mode)
 
     if not dest_dir.exists():
         ic("making dest_dir:", dest_dir)
-        mkdir_or_exit(dest_dir, confirm=confirm, verbose=verbose)
+        mkdir_or_exit(
+            dest_dir,
+            confirm=confirm,
+        )
 
     symlink_or_exit(
-        target=infile, link_name=dest_file, confirm=confirm, verbose=verbose
+        target=infile,
+        link_name=dest_file,
+        confirm=confirm,
     )
 
 
 def skip_path(
     infile: Path,
-    verbose: bool = False,
 ):
     for parent in infile.parents:
         if parent in SKIP_DIRS:
@@ -214,10 +228,8 @@ def process_skel(
     skel: Path,
     count: int,
     confirm: bool,
-    verbose: bool = False,
 ):
-    if verbose:
-        ic(root, skel)
+    ic(root, skel)
 
     for index, infile in enumerate(
         paths(
@@ -225,23 +237,23 @@ def process_skel(
             return_dirs=True,
             return_files=True,
             return_symlinks=True,
-            verbose=verbose,
         )
     ):
         if count:
             if index >= count:
                 return
         _infile = infile.pathlib
-        if verbose == inf:
+        if gvd:
             ic(_infile)
         del infile
-        if not skip_path(_infile, verbose=verbose):
+        if not skip_path(
+            _infile,
+        ):
             process_infile(
                 root=root,
                 skel=skel,
                 infile=_infile,
                 confirm=confirm,
-                verbose=verbose,
             )
 
 
@@ -314,9 +326,15 @@ def cli(
         skel = Path(sysskel) / Path("etc/skel")
         assert path_is_dir(skel)
         process_skel(
-            root=Path(path), skel=skel, count=count, confirm=confirm, verbose=verbose
+            root=Path(path),
+            skel=skel,
+            count=count,
+            confirm=confirm,
         )
     else:
         process_skel(
-            root=Path("/"), skel=sysskel, count=count, confirm=confirm, verbose=verbose
+            root=Path("/"),
+            skel=sysskel,
+            count=count,
+            confirm=confirm,
         )
