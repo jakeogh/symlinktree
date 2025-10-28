@@ -1,33 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-# pylint: disable=useless-suppression             # [I0021]
-# pylint: disable=missing-docstring               # [C0111] docstrings are always outdated and wrong
-# pylint: disable=missing-param-doc               # [W9015]
-# pylint: disable=missing-module-docstring        # [C0114]
-# pylint: disable=fixme                           # [W0511] todo encouraged
-# pylint: disable=line-too-long                   # [C0301]
-# pylint: disable=too-many-instance-attributes    # [R0902]
-# pylint: disable=too-many-lines                  # [C0302] too many lines in module
-# pylint: disable=invalid-name                    # [C0103] single letter var names, name too descriptive(!)
-# pylint: disable=too-many-return-statements      # [R0911]
-# pylint: disable=too-many-branches               # [R0912]
-# pylint: disable=too-many-statements             # [R0915]
-# pylint: disable=too-many-arguments              # [R0913]
-# pylint: disable=too-many-nested-blocks          # [R1702]
-# pylint: disable=too-many-locals                 # [R0914]
-# pylint: disable=too-many-public-methods         # [R0904]
-# pylint: disable=too-few-public-methods          # [R0903]
-# pylint: disable=no-member                       # [E1101] no member for base
-# pylint: disable=attribute-defined-outside-init  # [W0201]
-# pylint: disable=too-many-boolean-expressions    # [R0916] in if statement
-
 from __future__ import annotations
 
 import os
 import sys
 import time
-from math import inf
 from pathlib import Path
 from shutil import move
 
@@ -39,12 +17,12 @@ from clicktool import tvicgvd
 from eprint import eprint
 from getdents import paths
 from globalverbose import gvd
+from pathtool import create_relative_symlink
 from pathtool import is_broken_symlink
 from pathtool import is_unbroken_symlink
 from pathtool import make_file_not_immutable  # todo, reset +i
 from pathtool import mkdir_or_exit
 from pathtool import path_is_dir
-from pathtool import symlink_or_exit
 from walkup_until_found import walkup_until_found
 
 global SKIP_DIRS
@@ -71,7 +49,6 @@ def process_infile(
     confirm: bool,
 ):
     assert "._symlinktree_old." not in infile.as_posix()
-    global SKIP_DIRS
     eprint("")
     eprint(f"{infile=}")
 
@@ -100,10 +77,9 @@ def process_infile(
         assert not dest_dir.is_file()
 
         if not dest_dir.exists():
-            symlink_or_exit(
+            create_relative_symlink(
                 target=infile.parent,
                 link_name=dest_dir,
-                confirm=confirm,
             )
             return
 
@@ -123,10 +99,9 @@ def process_infile(
                 dest_dir,
                 confirm=confirm,
             )  # might want to just rm broken symlinks
-            symlink_or_exit(
+            create_relative_symlink(
                 target=infile.parent,
                 link_name=dest_dir,
-                confirm=confirm,
             )
             return
 
@@ -206,10 +181,9 @@ def process_infile(
             confirm=confirm,
         )
 
-    symlink_or_exit(
+    create_relative_symlink(
         target=infile,
         link_name=dest_file,
-        confirm=confirm,
     )
 
 
@@ -310,8 +284,6 @@ def cli(
         ic=ic,
         gvd=gvd,
     )
-
-    global SKIP_DIRS
 
     sysskel = Path(sysskel).resolve()
     assert path_is_dir(sysskel)
